@@ -1,0 +1,19 @@
+{
+	"luci-app-openwrt-mcp": {
+		"description": "MCP permission console; write actions are administrator initiated",
+		"read": {
+			"ubus": {
+				"openwrt-mcp-admin": [ "status", "openclash" ],
+				"network.interface": [ "dump" ],
+				"network.device": [ "status" ],
+				"luci-rpc": [ "getHostHints", "getDHCPLeases" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"openwrt-mcp-admin": [ "create", "revoke", "query", "limit", "grant", "ungrant", "pause", "resume", "approve", "reject", "confirm", "rollback" ]
+			}
+		}
+	}
+}
+

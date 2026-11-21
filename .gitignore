@@ -1,0 +1,9 @@
+build/
+dist/
+outputs/
+*.ipk
+*.test
+*.tar.gz
+.env
+.env.*
+!.env.example
