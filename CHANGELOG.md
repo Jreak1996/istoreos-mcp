@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- LuCI 新客户端弹窗将新令牌作为 textarea 内容显示，而不是放在不会显示的 value 属性中；增加一键复制、复制成功提示和浏览器剪贴板 API 不可用时的复制回退。令牌依旧只显示一次。
+
 ## v0.5.0
 
 **Issue a WireGuard client and show a QR to scan it**, plus `uci_get` to read configuration
@@ -74,9 +80,9 @@ window and the gated tools work normally until it lapses, the way `sudo` does.
 - Unlocks live in memory only, so a restart re-locks everything.
 - `mfa_tools` naming a tool the policy does not grant is rejected at load — a typo would
   otherwise sit there looking like protection.
-- The secret is stored recoverably, because TOTP is symmetric, unlike bearer tokens which are
-  kept only as digests. Hence mode 0600, and `enrol` is CLI-only. **Run it yourself**: a
-  secret that passes through anyone else is not a second factor.
+- The secret is stored recoverably, because TOTP is symmetric, unlike bearer tokens which
+  are kept only as digests. Hence mode 0600, and `enrol` is CLI-only. **Run it yourself**:
+  a secret that passes through anyone else is not a second factor.
 
 ### Fixed before release
 
@@ -168,9 +174,9 @@ caller nothing new.
 
 No GL.iNet SDK or bundler is needed. The SPA fetches a view as text, `eval`s it, and uses
 the resulting value as the route component, so a plain IIFE returning a Vue 2 options object
-is sufficient. The shipped views' `module.exports=…` form works only because a direct `eval`
-inherits the enclosing webpack wrapper's scope. Vue is 2.6.12, so render functions avoid
-needing a template compiler at eval time.
+is sufficient. The shipped views' `module.exports=…` form works only because a direct
+`eval` inherits the enclosing webpack wrapper's scope. Vue is 2.6.12, so render functions
+avoid needing a template compiler at eval time.
 
 `running` in the report asks `/health` and requires the daemon to identify itself, rather
 than just dialling the port — 8730 is an ordinary port for something else to hold, and an
@@ -215,9 +221,6 @@ Verified on a GL.iNet Flint 4 (GL-BE14000), OpenWrt 21.02-SNAPSHOT / GL firmware
 
 - `make install` failed with `ETXTBSY` on every install after the first — `cat >` cannot
   overwrite a running executable. It now writes a sidecar and renames.
-- Pruning no longer touches replies small enough to read whole. The first version capped a
-  17-element list in 196 bytes (`iwinfo devices`), discarded a real interface and made the
-  reply longer.
 
 ### Documented
 
@@ -235,4 +238,3 @@ firmware 4.x is opkg-based, so this does not affect the Flint range.
 Initial implementation: resident MCP server under procd, six generic tools over `ubus`/`uci`,
 bearer auth, standing policies with deny-by-default, audit log, and `uci_apply` rollback.
 Written against a GL.iNet Flint 2.
-
