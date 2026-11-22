@@ -75,6 +75,25 @@ function modal(title, content, buttons) {
 	var footer = E('div', { 'class':'right mcp-modal-actions' }, buttons || []);
 	return ui.showModal(title, E('div', { 'class':'mcp-modal' }, [content, footer]));
 }
+function copyToken(value, field, trigger) {
+	function copied() {
+		trigger.textContent = '已复制';
+		notify('令牌已复制到剪贴板');
+	}
+	function fallback() {
+		field.focus();
+		field.select();
+		field.setSelectionRange(0, field.value.length);
+		var ok = false;
+		try { ok = document.execCommand('copy'); } catch (e) {}
+		if (ok) copied();
+		else notify('自动复制失败，请手动选择令牌复制');
+	}
+	if (navigator.clipboard && navigator.clipboard.writeText)
+		navigator.clipboard.writeText(value).then(copied).catch(fallback);
+	else
+		fallback();
+}
 function summary() {
 	var active = state.clients.filter(function(c) { return !c.revoked; }).length;
 	var pend = state.requests.filter(function(r) { return r.status === 'pending'; }).length;
@@ -112,7 +131,7 @@ function pageClients() {
 		var form = E('div', {}, [E('label', {for:'client-name'}, [document.createTextNode('客户端名称')]), E('input', {id:'client-name',maxlength:'96',placeholder:'例如 Codex'}), E('label', {for:'client-id'}, [document.createTextNode('客户端 ID（可选）')]), E('input', {id:'client-id',maxlength:'40',placeholder:'留空自动生成'})]);
 		modal('新增 MCP 客户端', form, [
 			btn('取消',function(){dialogOpen=false;ui.hideModal();refresh();}),
-			btn('创建并显示令牌一次',function(){ var name=document.getElementById('client-name').value.trim(), id=document.getElementById('client-id').value.trim(); if(!name)return notify('请填写客户端名称'); payload('create',{id:id,name:name}).then(function(data){ if(!data)return; var area=E('textarea',{readonly:'readonly',rows:'4',style:'width:100%',value:data.token}); modal('请立即复制此令牌',E('div',{},[text('p','令牌只显示这一次，请安全保存。'),area]),[btn('已安全保存',function(){dialogOpen=false;ui.hideModal();refresh();})]); }); },{'class':'btn primary'})
+			btn('创建并显示令牌一次',function(){ var name=document.getElementById('client-name').value.trim(), id=document.getElementById('client-id').value.trim(); if(!name)return notify('请填写客户端名称'); payload('create',{id:id,name:name}).then(function(data){ if(!data)return; var area=E('textarea',{readonly:'readonly',rows:'4','class':'mcp-token-value',spellcheck:'false'},[document.createTextNode(data.token)]); var copy=btn('一键复制令牌',function(){copyToken(data.token,area,copy);}); modal('请立即复制此令牌',E('div',{},[text('p','令牌只显示这一次，请安全保存。'),area]),[copy,btn('已安全保存',function(){dialogOpen=false;ui.hideModal();refresh();})]); }); },{'class':'btn primary'})
 		]);
 	});
 	var items = state.clients.map(function(c) { return E('tr', {}, [E('td', {}, [text('strong',c.name),text('small',c.id,'mono')]), E('td', {}, [badge(c.revoked?'已撤销':'可用',c.revoked?'red':'green')]), E('td', {}, [text('span',Object.keys(c.queries||{}).filter(function(k){return c.queries[k];}).length+' 项查询')]), E('td', {}, [text('span',String(c.limit)+' 次/分钟')]), E('td', {}, [btn('管理权限',function(){selectedClient=c.id;activeTab='permissions';render();}), c.revoked?E('span'):btn('撤销',function(){ if(confirm('撤销 '+c.name+' 的令牌并清除其待执行授权？')) payload('revoke',{id:c.id}); },{'class':'btn danger'})])]); });
